@@ -1,0 +1,70 @@
+name: "Build"
+on:
+  push:
+    branches:
+      - '*'
+    paths:
+      - '*.sh'
+      - '.github/workflows/build.yml'
+      - '*.txt'
+      - 'conf/*'
+      - 'hooks/*'
+  pull_request:
+    branches:
+      - '*'
+    paths:
+      - '*.sh'
+      - '.github/workflows/build.yml'
+      - '*.txt'
+      - 'conf/*'
+      - 'hooks/*'
+  workflow_dispatch:
+
+  release:
+    types: [ created ]
+
+
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["13.4", "13.4-aarch64", "13.5", "13.5-aarch64", "13.5-riscv64", "14.2", "14.2-aarch64", "14.2-riscv64", "14.3", "14.3-aarch64", "14.3-riscv64", "15.0", "15.0-aarch64", "15.0-riscv64"]
+    runs-on: ubuntu-24.04
+    env:
+      SEC_VBOX : ${{ vars.SEC_VBOX }}
+    steps:
+#    - name: Free Disk Space (Ubuntu)
+#      uses: jlumbroso/free-disk-space@main
+#      with:
+#        # this might remove tools that are actually needed,
+#        # if set to "true" but frees about 6 GB
+#        tool-cache: false
+    - uses: actions/checkout@v4
+    - name: Creating Web console
+      uses: vmactions/cf-tunnel@v0
+      id: tunnel
+      with:
+        protocol: http
+        port: 8000
+    - run: |
+        bash build.sh conf/freebsd-${{ matrix.os }}.conf
+    - name: Upload Release Asset
+      if: "contains(github.ref, 'refs/tags/')"
+      id: upload-release-asset
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: |
+          freebsd-${{ matrix.os }}.qcow2.zst*
+          freebsd-${{ matrix.os }}-id_rsa.pub
+          freebsd-${{ matrix.os }}-host.id_rsa
+          freebsd-${{ matrix.os }}.xml
+
+

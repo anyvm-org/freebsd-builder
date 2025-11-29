@@ -1,0 +1,44 @@
+name: "Manual"
+on:
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      DEBUG: 1
+      NGROK_TOKEN : ${{ secrets.NGROK_TOKEN }}
+      SEC_VBOX : ${{ vars.SEC_VBOX }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Creating web console
+      uses: vmactions/cf-tunnel@v0
+      id: tunnel
+      with:
+        protocol: http
+        port: 8000
+    - name: Run vnc tunnel
+      id: test
+      uses: vmactions/ngrok-tunnel@v0
+      with:
+        protocol: tcp
+        port: 5900
+    - name: Sleep
+      run: |
+        for i in $(seq 1 10) ; do echo $i; sleep 1; done
+        latest=$(cat $(ls conf/freebsd-*.conf | tail -1) | grep VM_RELEASE | cut -d = -f 2)
+        echo "please loging to ssh below, and run:"
+        echo "============================="
+        echo "bash build.sh conf/freebsd-$latest.conf"
+        echo "============================="
+        touch /tmp/keepalive
+
+    - uses: neilpang/debugger-action@master
+
+
+
+
+
+
+
