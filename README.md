@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/anyvm-org/freebsd-builder/actions/workflows/build.yml/badge.svg)](https://github.com/anyvm-org/freebsd-builder/actions/workflows/build.yml)
 
-Latest: v1.1.5
+Latest: v2.0.0
 
 
 The image builder for `freebsd`
