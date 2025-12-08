@@ -65,6 +65,33 @@ sysrc utx_enable="NO"
 sysrc bgfsck_enable="NO"
 sysrc dmesg_enable="NO"
 
+
+
+
+
+
+
+
+
+echo 'ifconfig_em0="DHCP"' >> /etc/rc.conf
+echo 'ifconfig_vtnet0="DHCP"' >> /etc/rc.conf
+
+cat << 'EOF' >> /etc/rc.local
+for iface in $(ifconfig -l); do
+    if [ "$iface" != "lo0" ]; then
+        dhclient $iface >/dev/null 2>&1
+    fi
+done
+EOF
+chmod +x /etc/rc.local
+
+
+
+
+
+
+
+
 echo "Done. Reboot to apply all optimizations."
 
 
