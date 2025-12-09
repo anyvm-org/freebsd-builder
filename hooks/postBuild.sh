@@ -25,7 +25,6 @@ echo "Applying fastest SSH boot optimizations..."
 # Optimize loader.conf
 cat <<EOF >/boot/loader.conf
 autoboot_delay="0"
-boot_mute="YES"
 loader_logo="NO"
 loader_menu_title="NO"
 
