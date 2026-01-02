@@ -65,7 +65,7 @@ sysrc bgfsck_enable="NO"
 sysrc dmesg_enable="NO"
 
 
-
+sysrc ipv6_network_interfaces="none"
 
 
 
