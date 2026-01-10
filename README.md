@@ -8,6 +8,42 @@ Latest: v2.0.7
 The image builder for `freebsd`
 
 
+All the supported releases are here:
+
+
+
+| Release | x86_64  | aarch64(arm64) | riscv64  |
+|---------|---------|---------|-----------------|
+| 15.0    |  ✅     |  ✅    |           ✅    |
+| 14.3    |  ✅     |  ✅    |           ✅    |
+| 14.2    |  ✅     |  ✅    |           ✅    |
+| 14.1    |  ✅     |  ✅    |           ❌    |
+| 14.0    |  ✅     |  ❌    |           ❌    |
+| 13.5    |  ✅     |  ✅    |           ✅    |
+| 13.4    |  ✅     |  ✅    |           ✅    |
+| 13.3    |  ✅     |  ✅    |           ❌    |
+| 13.2    |  ✅     |  ❌    |           ❌    |
+| 12.4    |  ✅     |  ❌    |           ❌    |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 How to use:
 
 1. Use the [manual.yml](.github/workflows/manual.yml) to build manually.
