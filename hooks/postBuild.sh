@@ -86,9 +86,11 @@ chmod +x /etc/rc.local
 
 
 
+#switch to latest
+sed -i '' 's#/quarterly#/latest#g' /etc/pkg/FreeBSD.conf
 
-
-
+rm -rf /var/db/pkg/repos/*
+pkg update -f
 
 
 echo "Done. Reboot to apply all optimizations."
