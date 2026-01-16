@@ -41,7 +41,9 @@ echo "--- 7. Starting services ---"
 service dbus restart
 rm -f /tmp/.X*-lock
 rm -rf /tmp/.X11-unix
-service gdm restart
+
+nohup service gdm restart > /dev/null 2>&1 &
+
 echo "--- Setup Complete! ---"
 echo "Root will now auto-login to GNOME. Please wait for the desktop to load."
 

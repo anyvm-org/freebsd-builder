@@ -43,7 +43,10 @@ echo "--- 8. Starting KDE ---"
 service dbus restart
 rm -f /tmp/.X*-lock
 rm -rf /tmp/.X11-unix
-service sddm restart
+
+nohup service sddm restart > /dev/null 2>&1 &
+
+
 echo "--- Setup Complete! Root is logging in... ---"
 
 
