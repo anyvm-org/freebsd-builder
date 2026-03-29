@@ -49,7 +49,7 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git add .github/workflows/README.md
+          git add README.md
           git diff --cached --quiet && exit 0
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
