@@ -40,7 +40,7 @@ jobs:
           echo "LATEST_CONF=$latest" >> $GITHUB_ENV
 
       - name: Update the readme.md
-        uses: anyvm-org/template-render@v0.0.2
+        uses: anyvm-org/template-render@v0.0.4
         with:
           datafile: .github/data/datafile.ini
           files: |
