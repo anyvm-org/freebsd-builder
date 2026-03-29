@@ -32,7 +32,7 @@ jobs:
           cat base-builder/.github/tpl/README.tpl.md >.github/tpl/README.tpl.md
 
       - name: Generate files
-        uses: anyvm-org/template-render@v0.0.2
+        uses: anyvm-org/template-render@v0.0.4
         with:
           datafile: .github/data/datafile.ini
           files: |
