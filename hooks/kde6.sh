@@ -26,16 +26,13 @@ SDDM_CONF="/usr/local/etc/sddm.conf"
 cat <<EOF > "$SDDM_CONF"
 [Autologin]
 User=root
-Session=plasma.desktop
+Session=plasmax11.desktop
 Relogin=false
 [Users]
 MinimumUid=0
 MaximumUid=60000
 EOF
 echo "--- 6. Fixing PAM to allow Root Graphic Login ---"
-
-
-
 sed -i '' 's/account[[:space:]]*requisite[[:space:]]*pam_securetty.so/# &/' /etc/pam.d/login
 echo "--- 7. Setting Root Password to 'root' ---"
 echo 'root' | pw mod user root -h 0
