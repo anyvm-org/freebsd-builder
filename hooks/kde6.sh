@@ -3,6 +3,21 @@
 # FreeBSD KDE Plasma 6 Root Auto-Login Setup Script (Final)
 # =================================================================
 set -e
+# Arch guard: FreeBSD 15.0 on non-amd64 (aarch64, riscv64) currently lacks a
+# working Xorg display driver under QEMU. The kernel's virtio_gpu is a VT
+# console driver only -- it does not expose /dev/dri/card0, so the modesetting
+# Xorg driver cannot bind, and scfb fails with "scfb_mmap: Invalid argument"
+# on first ScreenInit. drm-kmod / xf86-video-fbdev are not in the non-amd64
+# pkg repo either. Until FreeBSD ships a DRM virtio-gpu driver, this hook is
+# x86_64-only -- fail loudly rather than install hundreds of packages and
+# leave the user staring at a dead SDDM.
+ARCH=$(uname -m)
+if [ "$ARCH" != "amd64" ]; then
+    echo "ERROR: hooks/kde6.sh only supports amd64 (got $ARCH)."
+    echo "FreeBSD $ARCH currently lacks a working Xorg / Wayland display"
+    echo "driver for QEMU virtio-gpu (no /dev/dri, scfb mmap broken)."
+    exit 1
+fi
 echo "--- 1. Installing KDE Plasma 6 ---"
 pkg update
 pkg install -y xorg plasma6-plasma sddm
