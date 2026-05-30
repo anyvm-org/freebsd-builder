@@ -37,12 +37,16 @@ echo "--- 6. Allowing Root login for GNOME (PAM configurations) ---"
 if [ -f "/usr/local/etc/pam.d/gdm-password" ]; then
     sed -i '' 's/auth.*required.*pam_succeed_if.so user != root quiet_success/# &/' /usr/local/etc/pam.d/gdm-password
 fi
-echo "--- 7. Disabling GNOME screen lock / idle lock (system-wide dconf) ---"
+echo "--- 7. Disabling GNOME screen lock / idle / autosuspend (system-wide dconf) ---"
 # The image is meant for a no-password autologin VM, so root has no password.
-# Without this, gnome-shell's idle timer eventually locks the screen and
-# gdm-password prompts for a password that does not exist, leaving the user
-# stuck. We disable the lock via a system-wide dconf override that applies
-# to every user (including the autologin root session).
+# Without these overrides:
+#   1. gnome-shell idle timer locks the screen -> gdm-password prompts for a
+#      password that does not exist -> user is stuck.
+#   2. gnome-settings-daemon power plugin auto-suspends the VM after a few
+#      minutes of inactivity -> VM appears frozen in the VNC viewer, and
+#      virtio device resume from suspend is not always reliable.
+# We disable both via a system-wide dconf override that applies to every
+# user (including the autologin root session).
 mkdir -p /usr/local/etc/dconf/profile /usr/local/etc/dconf/db/local.d
 # Ensure a 'user' profile exists that consults the local system db. If a
 # profile already exists (e.g. ibus put one there), only create if missing
@@ -63,6 +67,13 @@ idle-delay=uint32 0
 
 [org/gnome/desktop/lockdown]
 disable-lock-screen=true
+
+[org/gnome/settings-daemon/plugins/power]
+sleep-inactive-ac-type='nothing'
+sleep-inactive-ac-timeout=0
+sleep-inactive-battery-type='nothing'
+sleep-inactive-battery-timeout=0
+idle-dim=false
 EOF
 dconf update
 echo "--- 8. Starting services ---"
