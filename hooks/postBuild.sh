@@ -91,6 +91,13 @@ sed -i '' 's#/quarterly#/latest#g' /etc/pkg/FreeBSD.conf
 
 rm -rf /var/db/pkg/repos/*
 pkg update -f
+# After switching the repo from quarterly to latest, bring all already-installed
+# packages up to the latest branch so their ABI matches anything we install
+# afterwards. Otherwise a stale base library (e.g. glib 2.84) can collide with
+# a freshly installed consumer (e.g. gtk4 built against glib 2.86), giving
+# undefined-symbol errors at runtime -- which is what crashed gnome-shell into
+# the "Oh no! Something has gone wrong" screen at GDM.
+pkg upgrade -y
 
 
 echo "Done. Reboot to apply all optimizations."

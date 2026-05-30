@@ -8,7 +8,7 @@
 set -e
 echo "--- 1. Updating pkg and installing GNOME (this may take a while) ---"
 pkg update
-pkg install -y xorg gnome gdm
+pkg install -y xorg gnome-lite gdm
 echo "--- 2. Configuring Xorg Display Driver (scfb) ---"
 mkdir -p /usr/local/etc/X11/xorg.conf.d
 printf 'Section "Device"
@@ -20,10 +20,10 @@ EndSection
 echo "--- 3. Enabling necessary services in /etc/rc.conf ---"
 sysrc dbus_enable="YES"
 sysrc gdm_enable="YES"
-echo "--- 4. Configuring procfs (Essential for GNOME) ---"
-if ! grep -q "/proc" /etc/fstab; then
-    echo 'proc /proc procfs rw 0 0' >> /etc/fstab
-fi
+sysrc gnome_enable="YES"
+echo "--- 4. Configuring procfs / fdescfs (Essential for GNOME) ---"
+grep -q "/proc" /etc/fstab || echo 'proc /proc procfs rw 0 0' >> /etc/fstab
+grep -q "/dev/fd" /etc/fstab || echo 'fdesc /dev/fd fdescfs rw 0 0' >> /etc/fstab
 mount -a || true
 echo "--- 5. Configuring GDM for root auto-login ---"
 GDM_CUSTOM_CONF="/usr/local/etc/gdm/custom.conf"
