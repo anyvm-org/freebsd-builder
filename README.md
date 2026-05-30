@@ -3,7 +3,7 @@
 [![Build](https://github.com/anyvm-org/freebsd-builder/actions/workflows/build.yml/badge.svg)](https://github.com/anyvm-org/freebsd-builder/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/anyvm-org/freebsd-builder?include_prereleases&sort=semver)](https://github.com/anyvm-org/freebsd-builder/releases)
 
-Latest: v2.1.2
+Latest: v2.1.3
 
 
 The image builder for `freebsd`
