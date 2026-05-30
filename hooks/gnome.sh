@@ -37,7 +37,35 @@ echo "--- 6. Allowing Root login for GNOME (PAM configurations) ---"
 if [ -f "/usr/local/etc/pam.d/gdm-password" ]; then
     sed -i '' 's/auth.*required.*pam_succeed_if.so user != root quiet_success/# &/' /usr/local/etc/pam.d/gdm-password
 fi
-echo "--- 7. Starting services ---"
+echo "--- 7. Disabling GNOME screen lock / idle lock (system-wide dconf) ---"
+# The image is meant for a no-password autologin VM, so root has no password.
+# Without this, gnome-shell's idle timer eventually locks the screen and
+# gdm-password prompts for a password that does not exist, leaving the user
+# stuck. We disable the lock via a system-wide dconf override that applies
+# to every user (including the autologin root session).
+mkdir -p /usr/local/etc/dconf/profile /usr/local/etc/dconf/db/local.d
+# Ensure a 'user' profile exists that consults the local system db. If a
+# profile already exists (e.g. ibus put one there), only create if missing
+# so we do not stomp on it.
+if [ ! -f /usr/local/etc/dconf/profile/user ]; then
+    cat <<EOF > /usr/local/etc/dconf/profile/user
+user-db:user
+system-db:local
+EOF
+fi
+cat <<EOF > /usr/local/etc/dconf/db/local.d/00-no-screen-lock
+[org/gnome/desktop/screensaver]
+lock-enabled=false
+idle-activation-enabled=false
+
+[org/gnome/desktop/session]
+idle-delay=uint32 0
+
+[org/gnome/desktop/lockdown]
+disable-lock-screen=true
+EOF
+dconf update
+echo "--- 8. Starting services ---"
 service dbus restart
 rm -f /tmp/.X*-lock
 rm -rf /tmp/.X11-unix
