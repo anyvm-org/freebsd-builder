@@ -6,7 +6,9 @@ sed -E -i '' 's|ttyv0[[:space:]]+"/usr/libexec/getty Pc"|ttyv0	  "/usr/libexec/g
 
 
 
-: > ~/.sh_history && exec sh -l
+: > ~/.sh_history
+
+
 
 
 
