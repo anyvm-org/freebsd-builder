@@ -61,6 +61,6 @@ How to build:
 
     Just clone the repo. and run:
     ```bash
-    bash build.sh conf/freebsd-16.0.conf
+    python3 build.py conf/freebsd-16.0.conf
     ```
    
