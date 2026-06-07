@@ -494,25 +494,34 @@ def disk_if():
 
 
 def obsd_acpi_off():
-    """openbsd aarch64 < 7.4 needs acpi=off for FDT PCI routing."""
-    if env("VM_OS_NAME") != "openbsd" or env("VM_ARCH") != "aarch64":
-        return False
-    rel = (env("VM_RELEASE") or "").split("-", 1)[0].split(".")
-    try:
-        maj = int(rel[0]); mn = int(rel[1]) if len(rel) > 1 else 0
-    except (ValueError, IndexError):
-        return False
-    return (maj, mn) < (7, 4)
+    """openbsd aarch64 install needs acpi=off (force FDT / device-tree mode).
+    The libvirt-era builder that successfully installed every openbsd aarch64
+    release (vbox.sh: virt-install ... --machine virt --noacpi) disabled ACPI
+    for ALL aarch64, not just < 7.4: OpenBSD's bsd.rd installer kernel
+    boot-loops under ACPI on the QEMU virt machine (kernel resets right after
+    BOOTAA64 loads it -- reproduced on CI). anyvm.py only needs acpi=off for
+    < 7.4 because it RUNS finished images (the installed kernel is fine under
+    ACPI); the INSTALL path is what needs FDT. So: all openbsd aarch64."""
+    return env("VM_OS_NAME") == "openbsd" and env("VM_ARCH") == "aarch64"
 
 
 def make_blank(path, mb):
+    # Write real zero bytes (NOT f.truncate(), which makes a sparse file).
+    # Mirrors anyvm.py:create_sized_file. The aarch64 virt machine treats the
+    # pflash images as a fixed 64MB raw flash device; a sparse-holed image can
+    # make EDK2 misread the firmware and the guest resets in a boot loop (seen
+    # on OpenBSD arm64). Fully-allocated zeros match anyvm.py's validated path.
+    chunk = b"\0" * (1024 * 1024)
     with open(path, "wb") as f:
-        f.truncate(mb * 1024 * 1024)
+        for _ in range(mb):
+            f.write(chunk)
 
 
 def copy_into(src, dst):
+    # Overwrite the start of dst without truncating it (like dd conv=notrunc).
+    # Mirrors anyvm.py:copy_content_to_file.
     with open(src, "rb") as s: data = s.read()
-    with open(dst, "r+b") as d: d.seek(0); d.write(data)
+    with open(dst, "r+b") as d: d.write(data)
 
 
 def _aarch64_efi_search_dirs(qemu_bin=None):
@@ -530,12 +539,22 @@ def _aarch64_efi_search_dirs(qemu_bin=None):
 
 
 # Relative paths under each search dir where aarch64 EDK2 CODE firmware lives.
-# Mirrors anyvm.py:5232-5238. Order = preference (Debian/Ubuntu first).
+# anyvm.py:5232-5238 lists the MERGED QEMU_EFI.fd first, and that is fine for
+# its use case (RUNNING a finished image: the installed kernel never calls UEFI
+# runtime services, so a CODE/VARS build mismatch is harmless). But we INSTALL
+# from bsd.rd, whose installer kernel DOES call EFI runtime services -- with a
+# merged CODE paired against AAVMF_VARS.fd (the only VARS the merged image can
+# fall back to, from a different EDK2 build) the NVRAM/runtime layer desyncs and
+# bsd.rd resets in a boot loop the moment it jumps to the kernel (reproduced on
+# CI: bsd.rd loads, VM resets, forever). So prefer SPLIT firmware whose VARS
+# companion sits in the same dir / same build (edk2-aarch64-code.fd ->
+# edk2-aarch64-vars.fd, AAVMF_CODE.fd -> AAVMF_VARS.fd); keep merged images only
+# as last-resort fallbacks.
 _AARCH64_EFI_CODE_RELNAMES = [
-    os.path.join("edk2", "aarch64", "QEMU_EFI.fd"),
-    os.path.join("qemu-efi-aarch64", "QEMU_EFI.fd"),
-    os.path.join("AAVMF", "AAVMF_CODE.fd"),
-    os.path.join("qemu", "edk2-aarch64-code.fd"),
+    os.path.join("qemu", "edk2-aarch64-code.fd"),       # -> edk2-aarch64-vars.fd
+    os.path.join("AAVMF", "AAVMF_CODE.fd"),             # -> AAVMF_VARS.fd
+    os.path.join("edk2", "aarch64", "QEMU_EFI.fd"),     # merged (fallback)
+    os.path.join("qemu-efi-aarch64", "QEMU_EFI.fd"),    # merged (fallback)
     os.path.join("edk2", "aarch64", "QEMU_EFI-pflash.raw"),
 ]
 
@@ -758,25 +777,42 @@ def build_qemu_args(media_kind=None, media_path=None):
         if accel == "kvm":
             a += ["-global", "kvm-pit.lost_tick_policy=delay"]
         a += ["-device", "%s,netdev=net0" % nic, "-device", "virtio-balloon-pci"]
-        # Pin the install CDROM (when present) to IDE primary master,
-        # matching the libvirt-era release XML (`<target dev='hda' bus='ide'/>`).
-        # That makes the guest see it as cd0a -- NetBSD sysinst's default
-        # mount path. QEMU's `-cdrom` shortcut puts it at IDE index=2
-        # (secondary master = cd1a), which NetBSD then fails to mount and
-        # falls into the "Distribution medium" menu loop.
-        # When the main disk is also on IDE (dragonflybsd / ghostbsd:
-        # VM_DISK=ide), shift it to secondary master to avoid colliding
-        # with the cdrom slot.
+        # CDROM / disk IDE-slot placement -- two layouts depending on whether
+        # the main disk itself sits on the IDE bus.
+        #
+        #  * Disk NOT on IDE (e.g. NetBSD, which has no VM_DISK and so defaults
+        #    to virtio). Pin the install CDROM to IDE primary master (index=0),
+        #    matching the libvirt-era release XML (`<target dev='hda'
+        #    bus='ide'/>`) so the guest sees it as cd0a -- NetBSD sysinst's
+        #    default mount path. QEMU's `-cdrom` shortcut would instead land it
+        #    at index=2 (cd1a), which NetBSD fails to mount, looping in the
+        #    "Distribution medium" menu. The virtio disk never shares the IDE
+        #    bus, so this cannot disturb the disk's identity.
+        #
+        #  * Disk ON IDE (dragonflybsd / ghostbsd: VM_DISK=ide). The disk MUST
+        #    stay on IDE primary master (index=0) so QEMU hands it the lowest
+        #    auto serial (QM00001) in BOTH the install run (CDROM present) and
+        #    the startVM reboot (CDROM gone). QEMU assigns `QM%05d` serials in
+        #    IDE init order (index 0,1,2,3), independent of disk-vs-cdrom. If
+        #    the CDROM stole index=0 the disk would be QM00003 during install
+        #    but QM00001 on reboot, so DragonFly's recorded root device
+        #    `serno/QM00003` would vanish -> "Root mount failed: 6" hang at
+        #    mountroot>. So here the CDROM goes on secondary master via the
+        #    `-cdrom` shortcut (index=2) and the disk keeps index=0.
+        ide_disk = (dif == "ide")
         if dif == "sata":
             a += ["-drive", "file=%s,format=qcow2,if=none,id=disk0,discard=unmap,detect-zeroes=unmap" % qcow]
             a += ["-device", "ich9-ahci,id=ahci0", "-device", "ide-hd,bus=ahci0.0,drive=disk0"]
-        elif dif == "ide" and media_kind == "cdrom":
-            a += ["-drive", "file=%s,format=qcow2,if=ide,index=2,discard=unmap,detect-zeroes=unmap" % qcow]
         else:
             a += ["-drive", "file=%s,format=qcow2,if=%s,discard=unmap,detect-zeroes=unmap" % (qcow, dif)]
         if media_kind == "cdrom":
-            a += ["-drive", "file=%s,format=raw,if=ide,index=0,media=cdrom" % media_path,
-                  "-boot", "order=dc,menu=off"]
+            if ide_disk:
+                # IDE disk already holds index=0; CDROM goes to secondary
+                # master (index=2) so the disk keeps its stable serial.
+                a += ["-cdrom", media_path, "-boot", "order=dc,menu=off"]
+            else:
+                a += ["-drive", "file=%s,format=raw,if=ide,index=0,media=cdrom" % media_path,
+                      "-boot", "order=dc,menu=off"]
         elif media_kind == "disk":
             a += ["-drive", "file=%s,format=raw,if=ide" % media_path]
         # VGA device, anyvm.py:5441-5444. NetBSD/Haiku -> std,
@@ -1084,9 +1120,66 @@ def setup(install_ocr=None):
                         "tesseract-ocr", "python3-pil",
                         "tesseract-ocr-eng", "tesseract-ocr-script-latn",
                         "python3-opencv", "python3-pip"], env=apt_env)
-            if _sh_quiet("pip3 install -q --break-system-packages "
-                         "pytesseract opencv-python vncdotool") != 0:
-                _sh_quiet("pip3 install -q pytesseract opencv-python vncdotool")
+            # Use opencv-python-HEADLESS, not the full opencv-python wheel: the
+            # full wheel needs libGL.so.1, which headless CI runners (GitHub
+            # Actions) lack, so `import cv2` raises ImportError there. cv2 is
+            # used by ocr_py and transitively by paddleocr, so a clean import
+            # matters either way.
+            pip = sys.executable + " -m pip install -q"
+            if _sh_quiet(pip + " --break-system-packages "
+                         "pytesseract opencv-python-headless vncdotool") != 0:
+                _sh_quiet(pip + " pytesseract opencv-python-headless vncdotool")
+            if env("VM_OCR") == "paddle":
+                # Neural OCR (see ocr_paddle) for installer dialogs whose dim /
+                # low-contrast text tesseract cannot read. Install the engine,
+                # then warm it once so the PP-OCRv5 mobile models download here
+                # during setup rather than stalling the first waitForText poll.
+                # Use `sys.executable -m pip`, not bare `pip3`: on GitHub
+                # runners pip3 and the python3 running build.py can resolve to
+                # different interpreters / site-packages.
+                if _sh_quiet(pip + " --break-system-packages "
+                             "paddlepaddle paddleocr") != 0:
+                    _sh_quiet(pip + " paddlepaddle paddleocr")
+                # pip lands paddle in the user site-packages
+                # (~/.local/lib/pythonX.Y/site-packages). On a fresh CI runner
+                # that directory does not exist when this interpreter starts, so
+                # site.py never puts it on sys.path; pip then creates it mid-run,
+                # but this process's sys.path is already fixed, so every
+                # `import paddleocr` fails with ModuleNotFoundError even though
+                # pip returned 0 (exactly the CI failure: all OCR fell back to
+                # tesseract and hung at the hostname dialog). Add the user site
+                # to THIS process's path and clear the import caches so the
+                # warm-up below and every later ocr_paddle in this same run can
+                # import it.
+                try:
+                    import site, importlib
+                    us = site.getusersitepackages()
+                    if us:
+                        site.addsitedir(us)        # process any .pth there
+                        # Put user site at the FRONT, not the end: a stale apt
+                        # dep already on sys.path (e.g. an old typing_extensions
+                        # in dist-packages) would otherwise shadow the newer one
+                        # pip just installed for paddle. This restores the
+                        # priority site.py would have given it had the dir
+                        # existed at interpreter startup.
+                        if us in sys.path:
+                            sys.path.remove(us)
+                        sys.path.insert(0, us)
+                    importlib.invalidate_caches()
+                except Exception as e:
+                    log("setup: could not add user site to sys.path (%s)" % e)
+                try:
+                    import importlib.util, cv2, numpy
+                    cv2.imwrite("/tmp/_paddle_warm.png",
+                                numpy.full((60, 200, 3), 255, numpy.uint8))
+                    ocr_paddle("/tmp/_paddle_warm.png")
+                    if importlib.util.find_spec("paddleocr") is not None:
+                        log("setup: PaddleOCR ready (models cached)")
+                    else:
+                        log("setup: WARNING paddleocr not importable after "
+                            "install; OCR falls back to tesseract")
+                except Exception as e:
+                    log("setup: PaddleOCR warm-up failed (%s)" % e)
             vp = os.path.join(HOME, ".local", "bin", "vncdotool")
             if os.path.exists(vp):
                 _run_quiet(["sudo", "ln", "-sf", vp, "/usr/local/bin/vncdotool"])
@@ -1127,7 +1220,7 @@ def setup(install_ocr=None):
                     "KVM unavailable, falling back to TCG." % e)
     else:
         _run_quiet(["brew", "install", "tesseract", "qemu"])
-        _sh_quiet("pip3 install -q pytesseract opencv-python vncdotool")
+        _sh_quiet("pip3 install -q pytesseract opencv-python-headless vncdotool")
         log("Reloading sshd services in the Host")
         _sh_quiet('sudo sh -c \'echo "" >>/etc/ssh/sshd_config; '
                   'echo "StrictModes no" >>/etc/ssh/sshd_config\'')
@@ -1329,8 +1422,50 @@ def ocr_py(img):
     return pytesseract.image_to_string(im2)
 
 
+_PADDLE_OCR = None
+
+
+def ocr_paddle(img):
+    """OCR via PaddleOCR (PP-OCRv5 mobile det + en mobile rec). Used when a
+    conf sets VM_OCR=paddle. PaddleOCR's neural recognizer reads dim / low-
+    contrast installer dialog text that tesseract drops entirely (e.g. the
+    OmniOS "Enter the system hostname" box), so no per-screen colour tricks
+    are needed. The engine is built once and reused. enable_mkldnn=False
+    avoids a paddlepaddle 3.x oneDNN/PIR crash; the doc-orientation / unwarp /
+    textline-orientation sub-models are disabled (a flat console screen needs
+    none) to keep each predict near ~1s. Falls back to tesseract on any
+    error / if PaddleOCR is not installed."""
+    global _PADDLE_OCR
+    try:
+        if _PADDLE_OCR is None:
+            # Cap CPU: paddlepaddle otherwise spins ~6 OpenMP threads per
+            # predict, which on a 2-4 vCPU CI runner saturates the box and
+            # starves the KVM guest's boot / sshd. cpu_threads=2 plus
+            # OMP_NUM_THREADS keep each predict near ~1s while staying in budget.
+            os.environ.setdefault("OMP_NUM_THREADS", "2")
+            from paddleocr import PaddleOCR
+            _PADDLE_OCR = PaddleOCR(
+                lang="en", enable_mkldnn=False, cpu_threads=2,
+                text_detection_model_name="PP-OCRv5_mobile_det",
+                text_recognition_model_name="en_PP-OCRv5_mobile_rec",
+                use_doc_orientation_classify=False,
+                use_doc_unwarping=False,
+                use_textline_orientation=False)
+        lines = []
+        for r in _PADDLE_OCR.predict(img):
+            try: lines.extend(r["rec_texts"])
+            except Exception: pass
+        return "\n".join(lines)
+    except Exception as e:
+        log("ocr_paddle failed (%s); falling back to tesseract" % e)
+        return ocr_tess(img)
+
+
 def ocr(img):
-    if env("VM_OCR") == "py":
+    mode = env("VM_OCR")
+    if mode == "paddle":
+        return ocr_paddle(img)
+    if mode == "py":
         return ocr_py(img)
     return ocr_tess(img)
 
