@@ -59,6 +59,27 @@ jobs:
         port: 8000
     - run: |
         python3 build.py conf/freebsd-${{ matrix.os }}.conf
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        # One artifact per matrix job, so they don't collide and each can be
+        # downloaded independently from the run page.
+        name: freebsd-${{ matrix.os }}
+        path: |
+          freebsd-${{ matrix.os }}.qcow2.zst*
+          freebsd-${{ matrix.os }}-id_rsa.pub
+          freebsd-${{ matrix.os }}-host.id_rsa
+          freebsd-${{ matrix.os }}.qemu
+        if-no-files-found: warn
+        # qcow2.zst is already maximally compressed; gzip-recompressing the
+        # bundle just burns CPU for ~0 savings.
+        compression-level: 0
+        # Auto-expire to keep the repo's artifact storage quota from growing
+        # unboundedly. Two days is enough for a human to grab a copy for
+        # local verification; anything that needs to persist longer should
+        # cut a release (which goes through the Upload Release Asset step
+        # below and lives forever).
+        retention-days: 2
     - name: Upload Release Asset
       if: "contains(github.ref, 'refs/tags/')"
       id: upload-release-asset
