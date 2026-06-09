@@ -1343,6 +1343,14 @@ def setup(install_ocr=None):
             # qemu-system-sparc package; no separate firmware package needed.
             _run_quiet(["sudo", "-E", "apt-get", "install", "-y", "-qq",
                         "qemu-system-sparc"], env=apt_env)
+        if env("VM_ARCH") in ("powerpc64", "powerpc64le", "ppc64", "ppc64le"):
+            # qemu-system-ppc64 (pseries machine) ships in the qemu-system-ppc
+            # package; its SLOF firmware (/usr/share/qemu/slof.bin) is bundled
+            # with it, so no separate firmware package is needed. The GitHub
+            # ubuntu runner image does NOT preinstall this, hence the explicit
+            # apt-get (a local dev box may already have it from qemu-system).
+            _run_quiet(["sudo", "-E", "apt-get", "install", "-y", "-qq",
+                        "qemu-system-ppc"], env=apt_env)
         # Make /dev/kvm usable by the current shell user. On GitHub Actions
         # runners (and most desktop distros) the device is mode crw-rw----
         # root:kvm and the runner / login user is NOT in the kvm group, so
