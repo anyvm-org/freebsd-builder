@@ -32,7 +32,7 @@ log("freebsd installOpts: host pubkey = %s..." % _HOST_PUBKEY[:60])
 # it over SLIRP (http://192.168.122.1:8000/...) without needing DNS.
 # build.py's startWeb() already runs python3 -m http.server in cwd; we
 # just need the files to be in cwd. Skip files already present so reruns
-# don't re-download. Targets are powerpc64 15.0 -- update when the conf
+# don't re-download. Targets are powerpc64 -- update when the conf
 # changes arch / release.
 _FBSD_REL = env("VM_RELEASE") or "15.0"
 _FBSD_ARCH_PATH = "powerpc/powerpc64"
