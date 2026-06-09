@@ -850,10 +850,12 @@ def build_qemu_args(media_kind=None, media_path=None):
         # is the FreeBSD / Linux guest target on ppc64; powernv* is OPAL
         # bare-metal and won't boot a stock distro install ISO.
         #
-        # FreeBSD/powerpc64 is BIG-ENDIAN (ELFv1). Passing arch=powerpc64le
-        # would still target -M pseries, but the guest ISO/kernel would have
-        # to be little-endian -- no FreeBSD/powerpc64le port exists, so in
-        # practice this branch only fires for the BE case today.
+        # FreeBSD/powerpc64 is BIG-ENDIAN (ELFv1) and is the only ppc64
+        # target wired up. A little-endian port (powerpc64le, ELFv2) also
+        # exists, but its kernel takes an early Program Exception under
+        # QEMU TCG (illegal instruction at the VSX-unavailable vector) on
+        # every -cpu power8/9/10/max with QEMU 8.2.2, so it is intentionally
+        # not built here -- it would only boot on real POWER + KVM.
         #
         # Console: -serial chardev:serial0 is routed by pseries to the SPAPR
         # virtual teletype (spapr-vty), which the guest enumerates as
