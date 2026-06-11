@@ -3075,13 +3075,23 @@ def main(argv):
             if startVM() != 0:
                 log("verification startVM failed; aborting")
                 return 1
-            vdeadline = time.time() + vmax
+            vstart = time.time()
+            vdeadline = vstart + vmax
             while time.time() < vdeadline:
                 ok, _err = _ssh_ready_check()
                 if ok:
                     verify_ready = True
                     break
-                log("not ready yet, just sleep."); time.sleep(5)
+                # Echo what the guest console is doing, same format as
+                # _wait_vm_down. Without this the CI log is just a wall of
+                # "not ready yet" and a failed verify boot is undiagnosable
+                # (seen on a flaky 15.0-kde6 run: 2x600s of silence, no way
+                # to tell bootloader hang from fsck from rc stall).
+                vsize, vtail = _serial_tail_line()
+                vmm, vss = divmod(int(time.time() - vstart), 60)
+                log("[%dm%02ds] verify boot %d/2, serial=%dB | %s"
+                    % (vmm, vss, vattempt, vsize, vtail[:140]))
+                time.sleep(5)
             if verify_ready:
                 break
             log("verification VM not ssh-reachable within %d s "
