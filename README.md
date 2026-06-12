@@ -14,6 +14,7 @@ All the supported releases are here:
 
 | Release | x86_64  | aarch64(arm64) | riscv64  | powerpc64 |
 |---------|---------|---------|-----------------|-----------|
+| 15.1 (RC3)   |  ✅     |  ✅    |           ✅    |     ✅    |
 | 15.0    |  ✅     |  ✅    |           ✅    |     ✅    |
 | 15.0-xfce    |  ✅     |  —    |           —    |     —    |
 | 15.0-gnome    |  ✅     |  —    |           —    |     —    |
