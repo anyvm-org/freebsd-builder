@@ -34,10 +34,17 @@ log("freebsd installOpts: host pubkey = %s..." % _HOST_PUBKEY[:60])
 # just need the files to be in cwd. Skip files already present so reruns
 # don't re-download. Targets are powerpc64 -- update when the conf
 # changes arch / release.
+#
+# The dist directory defaults to "<release>-RELEASE" but is overridable
+# via VM_FBSD_DIST_DIR for pre-release images whose distfiles live in a
+# differently-suffixed directory (e.g. the 15.1 conf tracks the RC
+# image, whose sets are under powerpc/powerpc64/15.1-RC3/, while
+# VM_RELEASE stays "15.1" so the artifact names don't carry the RC tag).
 _FBSD_REL = env("VM_RELEASE") or "15.0"
 _FBSD_ARCH_PATH = "powerpc/powerpc64"
-_FBSD_BASE_URL = ("https://download.freebsd.org/releases/%s/%s-RELEASE"
-                  % (_FBSD_ARCH_PATH, _FBSD_REL))
+_FBSD_DIST_DIR = env("VM_FBSD_DIST_DIR") or ("%s-RELEASE" % _FBSD_REL)
+_FBSD_BASE_URL = ("https://download.freebsd.org/releases/%s/%s"
+                  % (_FBSD_ARCH_PATH, _FBSD_DIST_DIR))
 for _fn in ("MANIFEST", "kernel.txz", "base.txz"):
     if os.path.exists(_fn) and os.path.getsize(_fn) > 0:
         log("freebsd installOpts: %s already cached (%d bytes)"
