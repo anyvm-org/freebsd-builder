@@ -54,12 +54,26 @@ else:
         f.write("runcmd:\n")
         f.write("  - mkdir -p /root/.ssh\n")
         f.write("  - chmod 700 /root/.ssh\n")
+        # Generate the GUEST's own keypair, exactly like the console-path
+        # enablessh.txt does. main() exports its pubkey as the
+        # <name>-id_rsa.pub release asset (used so the guest can `ssh host`
+        # back over slirp); without this the export is a 0-byte file and
+        # the GitHub release upload rejects it ("size must be greater than
+        # or equal to 1" -- seen on the v2.1.7 15.1 job).
+        f.write("  - rm -f /root/.ssh/id_rsa /root/.ssh/id_rsa.pub\n")
+        f.write("  - ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N \"\"\n")
         f.write("  - echo '%s' >> /root/.ssh/authorized_keys\n" % _pub)
         f.write("  - chmod 600 /root/.ssh/authorized_keys\n")
         f.write("  - printf 'PermitRootLogin yes\\nPermitEmptyPasswords yes\\n"
                 "PasswordAuthentication yes\\nAcceptEnv *\\nStrictModes no\\n'"
                 " >> /etc/ssh/sshd_config\n")
         f.write("  - sysrc sshd_enable=YES\n")
+        # Same sendmail shutdown as enablessh.txt -- keeps the cloudinit
+        # artifact behaviorally identical to every other release (no
+        # listening MTA, faster boot).
+        f.write("  - sysrc sendmail_enable=NONE sendmail_submit_enable=NO "
+                "sendmail_outbound_enable=NO sendmail_msp_queue_enable=NO\n")
+        f.write("  - service sendmail onestop || true\n")
         f.write("  - service sshd restart || service sshd start\n")
         f.write("  - touch /etc/cloud/cloud-init.disabled\n")
     log("prepareImage: user-data:\n%s"
