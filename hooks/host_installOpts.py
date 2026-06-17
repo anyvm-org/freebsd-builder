@@ -37,9 +37,10 @@ log("freebsd installOpts: host pubkey = %s..." % _HOST_PUBKEY[:60])
 #
 # The dist directory defaults to "<release>-RELEASE" but is overridable
 # via VM_FBSD_DIST_DIR for pre-release images whose distfiles live in a
-# differently-suffixed directory (e.g. the 15.1 conf tracks the RC
-# image, whose sets are under powerpc/powerpc64/15.1-RC3/, while
-# VM_RELEASE stays "15.1" so the artifact names don't carry the RC tag).
+# differently-suffixed directory: a conf tracking an -RC build would set
+# VM_FBSD_DIST_DIR=<release>-RC<n> (sets under
+# powerpc/powerpc64/<release>-RC<n>/) while VM_RELEASE stays the plain
+# release so the artifact names don't carry the RC tag.
 _FBSD_REL = env("VM_RELEASE") or "15.0"
 _FBSD_ARCH_PATH = "powerpc/powerpc64"
 _FBSD_DIST_DIR = env("VM_FBSD_DIST_DIR") or ("%s-RELEASE" % _FBSD_REL)
