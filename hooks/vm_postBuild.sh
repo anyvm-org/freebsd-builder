@@ -86,8 +86,24 @@ chmod +x /etc/rc.local
 
 
 
-#switch to latest
-sed -i '' 's#/quarterly#/latest#g' /etc/pkg/FreeBSD.conf
+# Switch the ports repo from quarterly to latest so the freshly-installed
+# desktop packages match the upgraded base ABI (fixes the gnome-shell glib
+# 2.84-vs-2.86 mismatch noted below).
+#
+# EXCEPTION: kde6 stays on quarterly. FreeBSD currently ships the Plasma 6
+# metaports (plasma6-plasma / plasma6-plasma-desktop / plasma6-plasma-workspace)
+# only in /quarterly -- the /latest build for FreeBSD:15:amd64 was pulled, so
+# `pkg install plasma6-plasma` fails there with "No packages available". Keeping
+# kde6 all-quarterly (base + plasma both quarterly) is ABI-consistent and has
+# the packages. VM_RELEASE arrives via the hook's ssh SendEnv.
+case "$VM_RELEASE" in
+  *kde6*)
+    echo "kde6: keeping pkg repo on quarterly (Plasma 6 metaports absent from /latest)"
+    ;;
+  *)
+    sed -i '' 's#/quarterly#/latest#g' /etc/pkg/FreeBSD.conf
+    ;;
+esac
 
 rm -rf /var/db/pkg/repos/*
 pkg update -f
