@@ -3303,11 +3303,25 @@ def main(argv):
         log(extra)
         # Same relaxed keepalive as the install step above: a long CPU burst
         # in the guest must not get the stdin-fed script killed mid-run.
+        #
+        # CHECK THE EXIT CODE. The desktop hooks (xfce.sh/gnome.sh/kde6.sh,
+        # openbsd vm_*.sh) run `set -e`, so a failed `pkg install` aborts them
+        # non-zero. build.py used to ignore that rc and export the image
+        # anyway: a transient "pkg: No packages available matching
+        # 'plasma6-plasma'" left the FreeBSD 15.1-kde6 v2.1.8 artifact with NO
+        # desktop, yet the build still went green and was published. Fail the
+        # build on any non-zero rc so a desktop-less image is never shipped.
+        # One failure is a failure -- no retry; rerun the job to recover from a
+        # transient repo-catalogue hiccup.
         with open(extra, "rb") as f:
-            subprocess.run(["ssh", "-o", "SendEnv=VM_RELEASE",
-                            "-o", "ServerAliveInterval=30",
-                            "-o", "ServerAliveCountMax=20",
-                            osname, "sh"], stdin=f)
+            rc = subprocess.run(["ssh", "-o", "SendEnv=VM_RELEASE",
+                                 "-o", "ServerAliveInterval=30",
+                                 "-o", "ServerAliveCountMax=20",
+                                 osname, "sh"], stdin=f).returncode
+        if rc != 0:
+            log("VM_EXTRA_SCRIPT %s FAILED rc=%d; aborting (refusing to ship "
+                "an image whose extra script did not complete)" % (extra, rc))
+            return 1
 
     shutdown_and_wait()
 
