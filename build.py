@@ -3373,9 +3373,15 @@ def main(argv):
     if _ssh_ready_check()[0]:
         log("======Show authorized_keys: ")
         subprocess.call(["ssh", osname, "cat ~/.ssh/authorized_keys"])
+        # Run the check through /bin/sh explicitly. FreeBSD (and the other
+        # csh-rooted BSDs) default root's LOGIN shell to tcsh, which cannot
+        # parse `$(...)` -- ssh'ing the bare POSIX test made tcsh bail with
+        # "Illegal variable name." (non-zero), so the build mis-failed a
+        # perfectly good authorized_keys. A single-quoted `/bin/sh -c '...'`
+        # is opaque to the login shell, so the snippet always runs under sh.
         if subprocess.call(["ssh", osname,
-                            'test -s ~/.ssh/authorized_keys && '
-                            '[ -z "$(tail -c1 ~/.ssh/authorized_keys)" ]']) != 0:
+                            "/bin/sh -c 'test -s ~/.ssh/authorized_keys && "
+                            "[ -z \"$(tail -c1 ~/.ssh/authorized_keys)\" ]'"]) != 0:
             log("verification FAILED: ~/.ssh/authorized_keys is empty or does "
                 "not end with a trailing newline")
             return 1
