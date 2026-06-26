@@ -3371,19 +3371,23 @@ def main(argv):
     # it -- assert that held). If the VM is not ssh-reachable at this point
     # (some console-only images), warn and continue rather than fail.
     if _ssh_ready_check()[0]:
+        # Pull the whole authorized_keys back and judge it in Python rather
+        # than with a remote shell test. `cat` runs under any login shell; a
+        # POSIX `[ -z "$(...)" ]` does not -- FreeBSD roots default to tcsh,
+        # which can't parse `$(...)` and bailed with "Illegal variable name.",
+        # mis-failing a perfectly good file. The build VM's disk IS the qcow2
+        # about to be exported, so this is the shipped content. cat returns
+        # non-zero if the file is missing; empty stdout means an empty file;
+        # otherwise the trailing-byte test is unambiguous here.
+        r = subprocess.run(["ssh", osname, "cat ~/.ssh/authorized_keys"],
+                           capture_output=True)
+        ak = r.stdout
         log("======Show authorized_keys: ")
-        subprocess.call(["ssh", osname, "cat ~/.ssh/authorized_keys"])
-        # Run the check through /bin/sh explicitly. FreeBSD (and the other
-        # csh-rooted BSDs) default root's LOGIN shell to tcsh, which cannot
-        # parse `$(...)` -- ssh'ing the bare POSIX test made tcsh bail with
-        # "Illegal variable name." (non-zero), so the build mis-failed a
-        # perfectly good authorized_keys. A single-quoted `/bin/sh -c '...'`
-        # is opaque to the login shell, so the snippet always runs under sh.
-        if subprocess.call(["ssh", osname,
-                            "/bin/sh -c 'test -s ~/.ssh/authorized_keys && "
-                            "[ -z \"$(tail -c1 ~/.ssh/authorized_keys)\" ]'"]) != 0:
-            log("verification FAILED: ~/.ssh/authorized_keys is empty or does "
-                "not end with a trailing newline")
+        log(ak.decode("utf-8", "replace").rstrip("\n"))
+        if r.returncode != 0 or not ak or not ak.endswith(b"\n"):
+            log("verification FAILED: ~/.ssh/authorized_keys is missing, empty, "
+                "or has no trailing newline (rc=%d, %d bytes)"
+                % (r.returncode, len(ak)))
             return 1
         log("verification OK: authorized_keys ends with a trailing newline")
     else:
