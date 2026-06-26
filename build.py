@@ -3359,6 +3359,31 @@ def main(argv):
                 "an image whose extra script did not complete)" % (extra, rc))
             return 1
 
+    # Show authorized_keys and assert it ends with a trailing newline -- here,
+    # on the live build VM, BEFORE shutdown/export, so it runs for EVERY image.
+    # The post-export verification boot below is gated on VM_RSYNC_PKG /
+    # VM_SSHFS_PKG (skipped for base-only images such as riscv64 / powerpc64),
+    # so a check placed there never runs for them; this spot is ungated. The
+    # build VM's disk IS the qcow2 about to be exported, so this is the shipped
+    # content. Best-effort on ssh: if the VM answers, print authorized_keys and
+    # fail the build when it does not end in a newline (_gen_enablessh_local's
+    # base64 re-append emits none; the explicit `echo >>` is meant to terminate
+    # it -- assert that held). If the VM is not ssh-reachable at this point
+    # (some console-only images), warn and continue rather than fail.
+    if _ssh_ready_check()[0]:
+        log("======Show authorized_keys: ")
+        subprocess.call(["ssh", osname, "cat ~/.ssh/authorized_keys"])
+        if subprocess.call(["ssh", osname,
+                            'test -s ~/.ssh/authorized_keys && '
+                            '[ -z "$(tail -c1 ~/.ssh/authorized_keys)" ]']) != 0:
+            log("verification FAILED: ~/.ssh/authorized_keys is empty or does "
+                "not end with a trailing newline")
+            return 1
+        log("verification OK: authorized_keys ends with a trailing newline")
+    else:
+        log("authorized_keys check: build VM not ssh-reachable here; skipping "
+            "(not failing -- some console-only images have no ssh at this point)")
+
     shutdown_and_wait()
 
     # Host-side image-finalize hook (runs AFTER guest is down, BEFORE ISO is
@@ -3431,31 +3456,11 @@ def main(argv):
             subprocess.call(["ssh", osname, "ls -lah '$HOME'"])
             log("======Show ssh config: ")
             subprocess.call(["ssh", osname, "cat /boot/system/settings/ssh/sshd_config"])
-            log("======Show authorized_keys: ")
-            subprocess.call(["ssh", osname, "cat ~/.ssh/authorized_keys"])
         else:
             subprocess.call(["ssh", osname, "mkdir -p $HOME/work"])
             subprocess.call(["ssh", osname, "ls -lah $HOME"])
             log("======Show ssh config: ")
             subprocess.call(["ssh", osname, "cat /etc/ssh/sshd_config"])
-            log("======Show authorized_keys: ")
-            subprocess.call(["ssh", osname, "cat ~/.ssh/authorized_keys"])
-
-        # Verify the shipped image's authorized_keys ends with a trailing
-        # newline. _gen_enablessh_local appends the key a second time through
-        # `openssl base64 -d`, which emits no trailing newline, then an
-        # explicit `echo >>` is meant to terminate the file; assert that held
-        # so a regression can't ship a file ending mid-line. `tail -c1` is the
-        # last byte and `[ -z "$(...)" ]` is true only when it is a newline
-        # (command substitution strips trailing newlines to ""); `-s` rejects
-        # an empty/missing file. Fail the build if the tail is wrong.
-        if subprocess.call(["ssh", osname,
-                            'test -s ~/.ssh/authorized_keys && '
-                            '[ -z "$(tail -c1 ~/.ssh/authorized_keys)" ]']) != 0:
-            log("verification FAILED: ~/.ssh/authorized_keys is empty or does "
-                "not end with a trailing newline")
-            return 1
-        log("verification OK: authorized_keys ends with a trailing newline")
 
         # Tear down the verification VM so its QEMU process doesn't outlive
         # this build. Otherwise its hostfwd holds VM_SSH_PORT and the next
