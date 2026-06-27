@@ -10,7 +10,7 @@
 | 14.1    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (nfs,scp)    |  ✅ (nfs,scp)    |
 | 14.0    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (nfs,scp)    |  ✅ (nfs,scp)    |
 | 13.5    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (nfs,scp)    |  ✅ (nfs,scp)    |
-| 13.4    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (nfs,scp)    |  ✅ (nfs,scp)    |
+| 13.4    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (rsync,scp,sshfs,nfs)    |     —    |  ✅ (nfs,scp)    |
 | 13.3    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (nfs,scp)    |  ✅ (nfs,scp)    |
 | 13.2    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (nfs,scp)    |  ✅ (nfs,scp)    |
-| 12.4    |  ✅ (rsync,scp,sshfs,nfs)    |  ✅ (rsync,scp,sshfs,nfs)    |     —    |  ✅ (nfs,scp)    |
+| 12.4    |  ✅ (nfs,scp)    |  ✅ (nfs,scp)    |     —    |  ✅ (nfs,scp)    |
