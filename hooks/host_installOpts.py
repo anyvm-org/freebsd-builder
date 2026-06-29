@@ -44,14 +44,58 @@ log("freebsd installOpts: host pubkey = %s..." % _HOST_PUBKEY[:60])
 _FBSD_REL = env("VM_RELEASE") or "15.0"
 _FBSD_ARCH_PATH = "powerpc/powerpc64"
 _FBSD_DIST_DIR = env("VM_FBSD_DIST_DIR") or ("%s-RELEASE" % _FBSD_REL)
-_FBSD_BASE_URL = ("https://download.freebsd.org/releases/%s/%s"
-                  % (_FBSD_ARCH_PATH, _FBSD_DIST_DIR))
+# Choose the dist-set mirror at run time instead of hardcoding (or deriving it
+# from VM_ISO_LINK). FreeBSD serves CURRENT releases from
+# download.freebsd.org/releases and moves EOL releases to
+# archive.freebsd.org/old-releases -- and the two mirrors are NOT reliably in
+# sync: a release can linger on download after archive already has it, or
+# vanish from download the moment it EOLs. Trusting one fixed mirror breaks on
+# whichever side of that race we land (this turned a green powerpc64 build red
+# mid-2026 when 13.2-14.2 dropped off download). So for each dist file probe
+# the live download mirror first and fall back to the archive mirror on
+# 404 / unreachable.
+_FBSD_MIRROR_BASES = (
+    "https://download.freebsd.org/releases/%s/%s" % (_FBSD_ARCH_PATH, _FBSD_DIST_DIR),
+    "https://archive.freebsd.org/old-releases/%s/%s" % (_FBSD_ARCH_PATH, _FBSD_DIST_DIR),
+)
+
+def _fbsd_url_ok(url):
+    """True if url exists (HTTP 2xx via a 1-byte ranged GET). A definitive 404
+    returns False at once; transient network errors are retried a few times
+    before giving up, so a single blip can't misroute us off a mirror that
+    actually has the file."""
+    import urllib.request, urllib.error
+    for _attempt in range(3):
+        req = urllib.request.Request(url, headers={"Range": "bytes=0-0"})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                return resp.status < 400
+        except urllib.error.HTTPError as _e:
+            if _e.code == 404:
+                return False
+            log("freebsd installOpts: probe %s HTTP %s (attempt %d)"
+                % (url, _e.code, _attempt + 1))
+        except Exception as _e:
+            log("freebsd installOpts: probe %s err %s (attempt %d)"
+                % (url, _e, _attempt + 1))
+        time.sleep(3)
+    return False
+
 for _fn in ("MANIFEST", "kernel.txz", "base.txz"):
     if os.path.exists(_fn) and os.path.getsize(_fn) > 0:
         log("freebsd installOpts: %s already cached (%d bytes)"
             % (_fn, os.path.getsize(_fn)))
         continue
-    _url = "%s/%s" % (_FBSD_BASE_URL, _fn)
+    _url = None
+    for _base in _FBSD_MIRROR_BASES:
+        _cand = "%s/%s" % (_base, _fn)
+        if _fbsd_url_ok(_cand):
+            _url = _cand
+            break
+    if _url is None:
+        # Neither mirror answered the probe; attempt the download URL anyway so
+        # download() surfaces the real error rather than us masking it.
+        _url = "%s/%s" % (_FBSD_MIRROR_BASES[0], _fn)
     log("freebsd installOpts: pre-downloading %s" % _url)
     download(_url, _fn)
 log("freebsd installOpts: distfiles cached: %s"
