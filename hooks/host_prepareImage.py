@@ -33,7 +33,7 @@ else:
         run(["ssh-keygen", "-f", _idrsa, "-q", "-N", ""])
     _pub = open(_idrsa + ".pub").read().strip()
 
-    _seed_dir = "seed-data"
+    _seed_dir = wf("seed-data")
     os.makedirs(_seed_dir, exist_ok=True)
     with open(os.path.join(_seed_dir, "meta-data"), "w") as f:
         f.write("instance-id: anyvm-%s-%s\n" % (env("VM_OS_NAME"), env("VM_RELEASE")))
@@ -84,24 +84,27 @@ else:
     # fall back to xorriso's mkisofs emulation (preinstalled on the GitHub
     # ubuntu runners and most dev boxes); install genisoimage as a last
     # resort.
-    try: os.remove("seed.iso")
+    # build.py keeps all generated files under WORKDIR (wf()); the seed ISO is
+    # one of them, and it is handed back to build_qemu_args via VM_SEED_ISO.
+    _seed_iso = wf("seed.iso")
+    try: os.remove(_seed_iso)
     except OSError: pass
     if shutil.which("genisoimage"):
-        run(["genisoimage", "-output", "seed.iso", "-volid", "cidata",
+        run(["genisoimage", "-output", _seed_iso, "-volid", "cidata",
              "-joliet", "-rock", _seed_dir])
     elif shutil.which("xorriso"):
-        run(["xorriso", "-as", "mkisofs", "-output", "seed.iso",
+        run(["xorriso", "-as", "mkisofs", "-output", _seed_iso,
              "-volid", "cidata", "-joliet", "-rock", _seed_dir])
     else:
         _run_quiet(["sudo", "-E", "apt-get", "install", "-y", "-qq",
                     "genisoimage"], env={**os.environ,
                                          "DEBIAN_FRONTEND": "noninteractive"})
-        run(["genisoimage", "-output", "seed.iso", "-volid", "cidata",
+        run(["genisoimage", "-output", _seed_iso, "-volid", "cidata",
              "-joliet", "-rock", _seed_dir])
-    if not os.path.exists("seed.iso"):
+    if not os.path.exists(_seed_iso):
         log("prepareImage: FAILED to build seed.iso")
         sys.exit(1)
-    log("prepareImage: seed.iso ready (%d bytes)" % os.path.getsize("seed.iso"))
+    log("prepareImage: seed.iso ready (%d bytes)" % os.path.getsize(_seed_iso))
 
     # Hand the seed to build_qemu_args (gated attach on every launch).
-    os.environ["VM_SEED_ISO"] = "seed.iso"
+    os.environ["VM_SEED_ISO"] = _seed_iso
