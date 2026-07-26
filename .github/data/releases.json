@@ -1,0 +1,464 @@
+{
+  "os": "freebsd",
+  "releases": [
+    {
+      "tag": "12.4",
+      "release": "12.4",
+      "arch": "x86_64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "12.4-aarch64",
+      "release": "12.4",
+      "arch": "aarch64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.2",
+      "release": "13.2",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.2-aarch64",
+      "release": "13.2",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.2-riscv64",
+      "release": "13.2",
+      "arch": "riscv64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.2-powerpc64",
+      "release": "13.2",
+      "arch": "powerpc64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.3",
+      "release": "13.3",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.3-aarch64",
+      "release": "13.3",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.3-riscv64",
+      "release": "13.3",
+      "arch": "riscv64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.3-powerpc64",
+      "release": "13.3",
+      "arch": "powerpc64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.4",
+      "release": "13.4",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.4-aarch64",
+      "release": "13.4",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.4-powerpc64",
+      "release": "13.4",
+      "arch": "powerpc64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.5",
+      "release": "13.5",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.5-aarch64",
+      "release": "13.5",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.5-riscv64",
+      "release": "13.5",
+      "arch": "riscv64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "13.5-powerpc64",
+      "release": "13.5",
+      "arch": "powerpc64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.0",
+      "release": "14.0",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.0-aarch64",
+      "release": "14.0",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.0-riscv64",
+      "release": "14.0",
+      "arch": "riscv64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.0-powerpc64",
+      "release": "14.0",
+      "arch": "powerpc64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.1",
+      "release": "14.1",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.1-aarch64",
+      "release": "14.1",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.1-riscv64",
+      "release": "14.1",
+      "arch": "riscv64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.1-powerpc64",
+      "release": "14.1",
+      "arch": "powerpc64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.2",
+      "release": "14.2",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.2-aarch64",
+      "release": "14.2",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.2-riscv64",
+      "release": "14.2",
+      "arch": "riscv64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.2-powerpc64",
+      "release": "14.2",
+      "arch": "powerpc64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.3",
+      "release": "14.3",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.3-aarch64",
+      "release": "14.3",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.3-riscv64",
+      "release": "14.3",
+      "arch": "riscv64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.3-powerpc64",
+      "release": "14.3",
+      "arch": "powerpc64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.4",
+      "release": "14.4",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.4-aarch64",
+      "release": "14.4",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.4-riscv64",
+      "release": "14.4",
+      "arch": "riscv64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.4-powerpc64",
+      "release": "14.4",
+      "arch": "powerpc64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.0",
+      "release": "15.0",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.0-aarch64",
+      "release": "15.0",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.0-riscv64",
+      "release": "15.0",
+      "arch": "riscv64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.0-powerpc64",
+      "release": "15.0",
+      "arch": "powerpc64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.0-gnome",
+      "release": "15.0-gnome",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": true,
+      "build": true
+    },
+    {
+      "tag": "15.0-kde6",
+      "release": "15.0-kde6",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": true,
+      "build": true
+    },
+    {
+      "tag": "15.0-xfce",
+      "release": "15.0-xfce",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": true,
+      "build": true
+    },
+    {
+      "tag": "15.1",
+      "release": "15.1",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.1-aarch64",
+      "release": "15.1",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.1-riscv64",
+      "release": "15.1",
+      "arch": "riscv64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.1-powerpc64",
+      "release": "15.1",
+      "arch": "powerpc64",
+      "sync": "nfs,scp",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.1-gnome",
+      "release": "15.1-gnome",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": true,
+      "build": true
+    },
+    {
+      "tag": "15.1-kde6",
+      "release": "15.1-kde6",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": true,
+      "build": true
+    },
+    {
+      "tag": "15.1-xfce",
+      "release": "15.1-xfce",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": true,
+      "build": true
+    }
+  ]
+}
