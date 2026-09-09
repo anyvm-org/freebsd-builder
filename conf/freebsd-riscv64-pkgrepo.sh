@@ -44,6 +44,29 @@ if [ "$got" != "$KEY_SHA256" ]; then
     exit 1
 fi
 
+# 15.0's riscv64 VM image ships only pkg's bootstrapper stub, and the
+# bootstrap it wants (pkg.FreeBSD.org's Latest/pkg.pkg for
+# FreeBSD:15:riscv64) does not exist -- the install step then fails with
+# "The package management tool is not yet installed on your system". The
+# index release carries the same package under a stable name for exactly
+# this: extract pkg-static from it and let it register itself. 15.1 ships
+# pkg already (pkgbase) and skips all of this.
+if [ ! -x /usr/local/sbin/pkg-static ]; then
+    echo "no pkg on this image; bootstrapping from $INDEX/pkg.pkg"
+    fetch -q -o /tmp/pkgboot.pkg "$INDEX/pkg.pkg" || {
+        echo "FATAL: cannot fetch the pkg bootstrap package" >&2
+        exit 1
+    }
+    mkdir -p /tmp/pkgboot
+    tar -x -f /tmp/pkgboot.pkg -C /tmp/pkgboot /usr/local/sbin/pkg-static 2>/dev/null ||
+    tar -x -f /tmp/pkgboot.pkg -C /tmp/pkgboot usr/local/sbin/pkg-static || {
+        echo "FATAL: pkg-static is not in the bootstrap package" >&2
+        exit 1
+    }
+    /tmp/pkgboot/usr/local/sbin/pkg-static add /tmp/pkgboot.pkg
+    pkg -v
+fi
+
 # On 15.x the stock repositories are the pkgbase set, and FreeBSD-ports is
 # enabled by default. It has nothing for riscv64, and leaving it on makes
 # every pkg update end in "Error updating repositories!" -- a non-zero
