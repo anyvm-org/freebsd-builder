@@ -335,6 +335,42 @@
       "build": true
     },
     {
+      "tag": "14.5",
+      "release": "14.5",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.5-aarch64",
+      "release": "14.5",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.5-riscv64",
+      "release": "14.5",
+      "arch": "riscv64",
+      "sync": "nfs,scp,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "14.5-powerpc64",
+      "release": "14.5",
+      "arch": "powerpc64",
+      "sync": "nfs,scp,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
       "tag": "15.0",
       "release": "15.0",
       "arch": "x86_64",
