@@ -14,8 +14,8 @@ All the supported releases are here:
 
 | Release | x86_64 | aarch64(arm64) | riscv64 | powerpc64 |
 |---------|---------|---------|---------|---------|
-| 15.1 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) | ✅ (nfs,scp,tar) |
-| 15.0 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) | ✅ (nfs,scp,tar) |
+| 15.1 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) |
+| 15.0 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) |
 | 14.5 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) | ✅ (nfs,scp,tar) |
 | 14.4 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) | ✅ (nfs,scp,tar) |
 | 14.3 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) | ✅ (nfs,scp,tar) |
@@ -39,6 +39,18 @@ All the supported releases are here:
 [^rv-none]: riscv64 first became a FreeBSD release architecture in 13.0, so there is no 12.4 riscv64 image to build.
 [^rv-stub]: The upstream 13.4 riscv64 `qcow2.xz` on the FreeBSD archive mirror is a broken 32-byte stub rather than a real disk image, so this target cannot be built.
 [^ppc-panic]: FreeBSD 12.x powerpc64 panics in early boot under QEMU pseries -- its PAPR hash-MMU backend hard-requires 16 MiB large pages, which QEMU advertises only when guest RAM is backed by host huge pages. Reworked in FreeBSD 13.0, so 13.2+ powerpc64 build fine; 12.4 (EOL) is dropped.
+
+> **Note:** The 15.x riscv64 images install their packages from
+> [anyvm-org/freebsd-pkg-repo](https://github.com/anyvm-org/freebsd-pkg-repo),
+> because pkg.FreeBSD.org publishes no riscv64 packages at all. That
+> repository is the ports tree built with poudriere under qemu-user and
+> published as signed GitHub release assets; the image carries its public
+> key and one repository block per shard, so `pkg install` works out of the
+> box and `rsync`/`sshfs` sync are available. Packages published into
+> shards created after an image was built are not in that image's copy of
+> the repository list -- refetch `anyvm.conf` from the index release to see
+> them. 13.x and 14.x riscv64 have no such repository (it is built for
+> `FreeBSD:15:riscv64`) and keep the package-less sync methods.
 
 > **Note:** FreeBSD 16.0/16.0-aarch64 confs are kept on disk but not yet
 > opted into the build matrix -- 16.0 is a CURRENT snapshot
