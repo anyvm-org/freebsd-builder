@@ -20,6 +20,18 @@ set -e
 INDEX=https://github.com/anyvm-org/freebsd-pkg-repo/releases/download/idx-FreeBSD-15-riscv64
 KEY_SHA256=a9e2f84083b916f0f9f2bda18ebf9cc581cfb28aaadb6827836f1ddc672a3040
 
+# The repository is built in a 15.1 jail, so its packages record
+# OSVERSION 1501000 while 15.0's userland is 1500068. pkg refuses a
+# "newer FreeBSD version" package and asks an interactive question that
+# a piped-in script can only answer with EOF ("Failed to install the
+# following 1 package(s)", run 34310785216). The ABI is the same
+# (FreeBSD:15:riscv64) and the conf's own VM_INSTALL_CMD already carries
+# IGNORE_OSVERSION for exactly this; set it for every pkg call here,
+# including the bootstrap, since VM_INSTALL_SCRIPT replaces that command.
+IGNORE_OSVERSION=yes
+ASSUME_ALWAYS_YES=yes
+export IGNORE_OSVERSION ASSUME_ALWAYS_YES
+
 mkdir -p /usr/local/etc/pkg/repos /usr/local/etc/pkg/keys
 
 # Bounded retries: this is the guest's first network call of the build.
