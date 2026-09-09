@@ -392,7 +392,7 @@
       "tag": "15.0-riscv64",
       "release": "15.0",
       "arch": "riscv64",
-      "sync": "nfs,scp,tar",
+      "sync": "rsync,scp,sshfs,nfs,tar",
       "shutdown": "/sbin/shutdown -p now",
       "desktop": false,
       "build": true
@@ -455,7 +455,7 @@
       "tag": "15.1-riscv64",
       "release": "15.1",
       "arch": "riscv64",
-      "sync": "nfs,scp,tar",
+      "sync": "rsync,scp,sshfs,nfs,tar",
       "shutdown": "/sbin/shutdown -p now",
       "desktop": false,
       "build": true
