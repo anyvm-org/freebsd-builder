@@ -114,6 +114,25 @@ esac
 
 rm -rf /var/db/pkg/repos/*
 pkg update -f
+
+# gnome: the x11/gnome metaport (gnome / gnome-lite) is still in the ports
+# tree, but a /latest package run that fails one of its run dependencies
+# ships the branch WITHOUT it, and `pkg install gnome-lite` then dies with
+# "No packages available to install matching 'gnome-lite'" (15.0-gnome and
+# 15.1-gnome, 2026-09-14; /quarterly still had gnome-lite 47). Probe the
+# catalogue we just fetched and fall back to quarterly when the metaport
+# is missing -- base + desktop then come from one branch, the same
+# ABI-consistent arrangement kde6 uses above. Self-healing: once /latest
+# carries the metaport again the probe succeeds and latest is kept.
+case "$VM_RELEASE" in
+  *gnome*)
+    if ! pkg rquery %n gnome-lite 2>/dev/null | grep -qx gnome-lite; then
+      echo "gnome: gnome-lite absent from the /latest catalogue; falling back to quarterly"
+      sed -i '' 's#/latest#/quarterly#g' /etc/pkg/FreeBSD.conf
+      pkg update -f
+    fi
+    ;;
+esac
 # After switching the repo from quarterly to latest, bring all already-installed
 # packages up to the latest branch so their ABI matches anything we install
 # afterwards. Otherwise a stale base library (e.g. glib 2.84) can collide with
