@@ -2,10 +2,28 @@
   "os": "freebsd",
   "releases": [
     {
+      "tag": "10.4",
+      "release": "10.4",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "11.4",
+      "release": "11.4",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
       "tag": "12.4",
       "release": "12.4",
       "arch": "x86_64",
-      "sync": "nfs,scp,tar",
+      "sync": "rsync,scp,sshfs,nfs,tar",
       "shutdown": "/sbin/shutdown -p now",
       "desktop": false,
       "build": true
