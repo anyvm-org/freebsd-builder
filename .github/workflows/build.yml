@@ -54,7 +54,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["10.4", "11.4", "12.4", "12.4-aarch64", "13.2", "13.2-aarch64", "13.2-riscv64", "13.2-powerpc64", "13.3", "13.3-aarch64", "13.3-riscv64", "13.3-powerpc64", "13.4", "13.4-aarch64", "13.4-powerpc64", "13.5", "13.5-aarch64", "13.5-riscv64", "13.5-powerpc64", "14.0", "14.0-aarch64", "14.0-riscv64", "14.0-powerpc64", "14.1", "14.1-aarch64", "14.1-riscv64", "14.1-powerpc64", "14.2", "14.2-aarch64", "14.2-riscv64", "14.2-powerpc64", "14.3", "14.3-aarch64", "14.3-riscv64", "14.3-powerpc64", "14.4", "14.4-aarch64", "14.4-riscv64", "14.4-powerpc64", "14.5", "14.5-aarch64", "14.5-riscv64", "14.5-powerpc64", "15.0", "15.0-aarch64", "15.0-riscv64", "15.0-powerpc64", "15.0-gnome", "15.0-kde6", "15.0-xfce", "15.1", "15.1-aarch64", "15.1-riscv64", "15.1-powerpc64", "15.1-gnome", "15.1-kde6", "15.1-xfce"]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
 #    - name: Free Disk Space (Ubuntu)
 #      uses: jlumbroso/free-disk-space@main
@@ -63,6 +63,15 @@ jobs:
 #        # if set to "true" but frees about 6 GB
 #        tool-cache: false
     - uses: actions/checkout@v7
+    # A builder whose confs install paddlepaddle (VM_OCR=paddle: omnios)
+    # sets BUILD_PYTHON in .github/data/datafile.ini: paddlepaddle has no
+    # cp314 wheel (3.3.1 stops at cp313) and ubuntu-26.04's python3 is
+    # 3.14. Everywhere else BUILD_PYTHON is unset, this step is skipped and
+    # build.py runs on the runner's own python3.
+    - uses: actions/setup-python@v7
+      if: ${{ '' != '' }}
+      with:
+        python-version: ''
     - name: Creating Web console
       uses: anyvm-org/cf-tunnel@v0
       id: tunnel
@@ -132,7 +141,7 @@ jobs:
     # Gate on the event, not github.ref: a 'release' event's github.ref can be
     # refs/heads/<branch>, which silently skips the upload. event_name is stable.
     if: "github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
     - uses: actions/checkout@v7
     - name: Upload release index Asset
