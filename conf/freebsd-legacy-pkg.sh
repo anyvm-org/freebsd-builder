@@ -1,5 +1,5 @@
 #!/bin/sh
-# Bootstrap pkg for EOL FreeBSD releases from the preserved SGGS package
+# Bootstrap pkg for EOL FreeBSD releases from a preserved package
 # repository, then install the package set requested by build.py.
 set -eu
 
