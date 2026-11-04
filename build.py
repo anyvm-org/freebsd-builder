@@ -34,6 +34,7 @@ import tempfile
 import threading
 import time
 import platform
+import urllib.error
 import urllib.request
 import zipfile
 
@@ -1990,9 +1991,22 @@ def _download_chunk(url, fpath, start, end):
         try:
             written = 0
             with _http_get_stream(url, start, end) as resp, open(fpath, "r+b") as f:
+                # A server that ignores Range answers 200 with the WHOLE file.
+                # Written at `start` it runs past the chunk, and the clean
+                # retry cannot shrink the file back: openindiana 202510 via
+                # Cloudflare ended at 929996550 + 4 chunks = 1394994826 bytes.
+                # Refuse the body unread and retry; never write past the chunk.
+                # A 206 for some OTHER range is refused too: with the capped
+                # read below it would land at `start` with the right length
+                # and the wrong bytes.
+                cr = resp.headers.get("Content-Range") or ""
+                if resp.getcode() != 206 or not cr.startswith(
+                        "bytes %d-%d/" % (start, end)):
+                    raise IOError("range [%d-%d] not honoured: HTTP %d %s" % (
+                        start, end, resp.getcode(), cr or "(no Content-Range)"))
                 f.seek(start)
-                while True:
-                    buf = resp.read(DL_BUF)
+                while written < expected:
+                    buf = resp.read(min(DL_BUF, expected - written))
                     if not buf: break
                     f.write(buf)
                     written += len(buf)
@@ -2020,6 +2034,21 @@ def _download_single(url, fpath):
             f.write(buf)
 
 
+# Waits between whole-file attempts. A CDN answering 524 / 525 means its
+# origin is overloaded or unreachable for a while (dlc.openindiana.org with
+# six matrix jobs pulling at once), so seconds rarely help; minutes might.
+DL_RETRY_WAITS = (30, 60, 120)
+
+
+def _dl_transient(e):
+    """Only a URL that does not exist (404 / 410) is final. Anything else
+    -- 5xx, a timeout, a reset, or a 4xx a mirror throttles with
+    (archive.netbsd.org's mid-transfer 402) -- is worth another attempt."""
+    if isinstance(e, urllib.error.HTTPError):
+        return e.code not in (404, 410)
+    return True
+
+
 def _download_resume(url, fpath, total):
     """Single-connection download that RESUMES via Range after a dropped or
     short connection. Needed for mirrors like archive.netbsd.org that cap each
@@ -2030,10 +2059,26 @@ def _download_resume(url, fpath, total):
     open(fpath, "wb").close()   # start from an empty file
     got = 0
     stalls = 0
+    restarts = 0
     while got < total:
         start = got
         try:
             with _http_get_stream(url, got, None) as resp, open(fpath, "r+b") as f:
+                cr = resp.headers.get("Content-Range") or ""
+                if resp.getcode() == 206 and not cr.startswith("bytes %d-" % got):
+                    raise IOError("resume at %d answered with %s" % (
+                        got, cr or "no Content-Range"))
+                if got and resp.getcode() != 206:
+                    # Range ignored: this body starts at byte 0, not at
+                    # `got`. Appending it would corrupt the image silently,
+                    # so start over from this same response (bounded).
+                    restarts += 1
+                    if restarts > DL_ATTEMPTS:
+                        raise IOError("range ignored %d times" % restarts)
+                    log("download: range ignored at %d/%d (HTTP %d), "
+                        "restarting from 0" % (got, total, resp.getcode()))
+                    f.truncate(0)
+                    got = start = 0
                 f.seek(got)
                 while True:
                     buf = resp.read(DL_BUF)
@@ -2041,6 +2086,8 @@ def _download_resume(url, fpath, total):
                     f.write(buf)
                     got += len(buf)
         except Exception as e:
+            if not _dl_transient(e):
+                raise
             log("download stream error at %d/%d: %s (resuming)" % (got, total, e))
         if got > start:
             stalls = 0
@@ -2051,6 +2098,31 @@ def _download_resume(url, fpath, total):
             time.sleep(2 * stalls)
 
 
+def _download_whole(url, fpath, size, resumable):
+    """Single-stream download, retried on transient errors with bounded
+    waits; exits the build on failure. `resumable` only when the probe saw
+    Range work -- some servers refuse any Range but serve a plain GET. A
+    plain stream that just ends early raises nothing, so a known size is
+    checked here, where a short file can still be retried."""
+    for attempt in range(len(DL_RETRY_WAITS) + 1):
+        try:
+            if resumable:
+                _download_resume(url, fpath, size)
+            else:
+                _download_single(url, fpath)
+            if size is not None and os.path.getsize(fpath) != size:
+                raise IOError("got %d of %d bytes" % (
+                    os.path.getsize(fpath), size))
+            return
+        except Exception as e:
+            if attempt == len(DL_RETRY_WAITS) or not _dl_transient(e):
+                log("FATAL: download failed: %s -- %s" % (url, e))
+                sys.exit(1)
+            log("download attempt %d failed: %s -- retrying in %ds" % (
+                attempt + 1, e, DL_RETRY_WAITS[attempt]))
+            time.sleep(DL_RETRY_WAITS[attempt])
+
+
 def download(link=None, fileout=None):
     """Multi-threaded HTTP downloader. 8 parallel Range requests when the
     server supports byte ranges; single-stream otherwise."""
@@ -2059,9 +2131,7 @@ def download(link=None, fileout=None):
     log("Downloading %s" % link)
     size, ranges_ok = _http_probe(link)
     if size is None or not ranges_ok or size < DL_CHUNK_MIN:
-        try: _download_single(link, fileout)
-        except Exception as e:
-            log("FATAL: download failed: %s -- %s" % (link, e)); sys.exit(1)
+        _download_whole(link, fileout, size, ranges_ok and size is not None)
         log("Download finished"); return 0
     with open(fileout, "wb") as f: f.truncate(size)
     chunk = (size + DL_THREADS - 1) // DL_THREADS
@@ -2086,14 +2156,7 @@ def download(link=None, fileout=None):
         # file as a single stream WITH resume, which stays under the per-client
         # limit and reconnects through mid-transfer drops.
         log("multi-threaded download failed; retrying single-stream with resume...")
-        try:
-            if size is not None and ranges_ok:
-                _download_resume(link, fileout, size)
-            else:
-                _download_single(link, fileout)
-        except Exception as e:
-            log("FATAL: download failed: %s -- %s" % (link, e))
-            sys.exit(1)
+        _download_whole(link, fileout, size, True)
     try:
         actual = os.path.getsize(fileout)
         if actual != size:
