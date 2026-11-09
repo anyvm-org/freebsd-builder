@@ -452,6 +452,33 @@
       "build": true
     },
     {
+      "tag": "15.0-ufs",
+      "release": "15.0-ufs",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.0-ufs-aarch64",
+      "release": "15.0-ufs",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.0-ufs-riscv64",
+      "release": "15.0-ufs",
+      "arch": "riscv64",
+      "sync": "rsync,scp,sshfs,nfs,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
       "tag": "15.1",
       "release": "15.1",
       "arch": "x86_64",
@@ -512,6 +539,33 @@
       "sync": "rsync,scp,sshfs,nfs,tar",
       "shutdown": "/sbin/shutdown -p now",
       "desktop": true,
+      "build": true
+    },
+    {
+      "tag": "15.1-ufs",
+      "release": "15.1-ufs",
+      "arch": "x86_64",
+      "sync": "rsync,scp,sshfs,nfs,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.1-ufs-aarch64",
+      "release": "15.1-ufs",
+      "arch": "aarch64",
+      "sync": "rsync,scp,sshfs,nfs,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.1-ufs-riscv64",
+      "release": "15.1-ufs",
+      "arch": "riscv64",
+      "sync": "rsync,scp,sshfs,nfs,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
       "build": true
     }
   ]
