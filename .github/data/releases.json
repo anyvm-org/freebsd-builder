@@ -479,6 +479,15 @@
       "build": true
     },
     {
+      "tag": "15.0-ufs-powerpc64",
+      "release": "15.0-ufs",
+      "arch": "powerpc64",
+      "sync": "nfs,scp,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
       "tag": "15.1",
       "release": "15.1",
       "arch": "x86_64",
@@ -564,6 +573,15 @@
       "release": "15.1-ufs",
       "arch": "riscv64",
       "sync": "rsync,scp,sshfs,nfs,tar",
+      "shutdown": "/sbin/shutdown -p now",
+      "desktop": false,
+      "build": true
+    },
+    {
+      "tag": "15.1-ufs-powerpc64",
+      "release": "15.1-ufs",
+      "arch": "powerpc64",
+      "sync": "nfs,scp,tar",
       "shutdown": "/sbin/shutdown -p now",
       "desktop": false,
       "build": true
