@@ -26,19 +26,20 @@ echo "=== finalize: image cleanup ==="
 # upgrade, multiple GB on the desktop variants.
 pkg clean -ay || true
 
-# ZFS images (15.0+): TRIM all free space so QEMU (discard=unmap) punches
-# the freed blocks out of the qcow2. -w waits for the trim to finish before
-# the build shuts the VM down. UFS images have no pool, so the loop body
-# never runs there (see the UFS block below). The legacy loader tunable
-# vfs.zfs.vdev.trim_enable=0 set in postBuild only affects pre-OpenZFS
-# kernels and does not block manual `zpool trim` on 13+.
+# ZFS images (the 15.x -zfs variants and desktops): TRIM all free space so
+# QEMU (discard=unmap) punches the freed blocks out of the qcow2. -w waits
+# for the trim to finish before the build shuts the VM down. UFS images
+# have no pool, so the loop body never runs there (see the UFS block below).
+# The legacy loader tunable vfs.zfs.vdev.trim_enable=0 set in postBuild
+# only affects pre-OpenZFS kernels and does not block manual `zpool trim`
+# on 13+.
 for _pool in $(zpool list -H -o name 2>/dev/null); do
     echo "Trimming pool ${_pool}..."
     zpool trim -w "${_pool}" || echo "zpool trim ${_pool} failed (non-fatal)"
     zpool status -t "${_pool}" || true
 done
 
-# UFS root + pkgbase (the 15.x -ufs images): vm_postBuild.sh installed a
+# UFS root + pkgbase (the plain 15.1 images): vm_postBuild.sh installed a
 # one-shot rc.d script that ran `fsck_ffs -E` on the read-only root at the
 # post-build reboot, TRIMming what the pkgbase upgrade freed. Log its
 # result and remove it, so the published image never runs it. Blocks

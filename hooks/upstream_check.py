@@ -27,9 +27,9 @@
 # 14.5 had to be added by hand -- four confs plus conf/all.release.conf.
 #
 # The branch also decides the template, which matters here more than
-# for most builders: 15.x VM images are named "-zfs.qcow2.xz" and 14.x
-# are the plain ".qcow2.xz", so a 14.5 modelled on 15.1 would carry a
-# download URL that does not exist.
+# for most builders: 15.x VM images are named "-ufs.qcow2.xz" /
+# "-zfs.qcow2.xz" and 14.x are the plain ".qcow2.xz", so a 14.5 modelled on
+# 15.1 would carry a download URL that does not exist.
 #
 # gendata.newest_per_branch() does the grouping. It is the same function
 # watch.py's decide() uses to pick each reported version's template

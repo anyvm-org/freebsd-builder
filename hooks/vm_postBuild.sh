@@ -22,8 +22,8 @@ kldload  fusefs
 
 echo "Applying fastest SSH boot optimizations..."
 
-# Root filesystem type ("zfs" on the 15.x -zfs images, "ufs" on the -ufs
-# variants, 14.x and older, and the powerpc64 ISO installs).
+# Root filesystem type ("zfs" on the 15.x -zfs variants and the desktop
+# images built from them, "ufs" on every other image).
 _rootfs=$(mount -p | awk '$2 == "/" { print $3; exit }')
 echo "root filesystem: ${_rootfs:-unknown}"
 
@@ -241,12 +241,13 @@ pkg upgrade -y
 # so the post-build reboot trims their blocks too. vm_finalize.sh's
 # `pkg clean` runs after that reboot, and on UFS whatever it frees stays
 # allocated in the qcow2 -- measured 3.33 GiB allocated against 2.6 GiB
-# used on 15.1-ufs-aarch64, the gap being the ~0.55 GiB pkgbase cache.
-# The files are removed directly rather than with `pkg clean -ay`: that
-# refuses with "No package database installed" until a ports catalogue
-# exists, which on riscv64 only happens later (VM_INSTALL_SCRIPT points pkg
-# at anyvm-org/freebsd-pkg-repo), and it left 469 MiB behind on 15.1-ufs-
-# riscv64. The cache is only a download cache; pkg refetches on demand.
+# used on the 15.1 UFS aarch64 image, the gap being the ~0.55 GiB pkgbase
+# cache. The files are removed directly rather than with `pkg clean -ay`:
+# that refuses with "No package database installed" until a ports
+# catalogue exists, which on riscv64 only happens later (VM_INSTALL_SCRIPT
+# points pkg at anyvm-org/freebsd-pkg-repo), and it left 469 MiB behind on
+# the 15.1 UFS riscv64 image. The cache is only a download cache; pkg
+# refetches on demand.
 if [ -e /etc/rc.d/anyvm_ufstrim ]; then
   find /var/cache/pkg -name '*.pkg' -exec rm -f {} + || true
   du -sh /var/cache/pkg || true

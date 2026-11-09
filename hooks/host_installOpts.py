@@ -41,7 +41,7 @@ log("freebsd installOpts: host pubkey = %s..." % _HOST_PUBKEY[:60])
 # VM_FBSD_DIST_DIR=<release>-RC<n> (sets under
 # powerpc/powerpc64/<release>-RC<n>/) while VM_RELEASE stays the plain
 # release so the artifact names don't carry the RC tag.
-# A variant release ("15.1-ufs") installs the same media as its plain
+# A variant release ("15.1-zfs") installs the same media as its plain
 # release, so only the version before the first "-" names the directory.
 _FBSD_REL = (env("VM_RELEASE") or "15.0").split("-")[0]
 _FBSD_ARCH_PATH = "powerpc/powerpc64"
