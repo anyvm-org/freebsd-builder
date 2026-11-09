@@ -242,8 +242,14 @@ pkg upgrade -y
 # `pkg clean` runs after that reboot, and on UFS whatever it frees stays
 # allocated in the qcow2 -- measured 3.33 GiB allocated against 2.6 GiB
 # used on 15.1-ufs-aarch64, the gap being the ~0.55 GiB pkgbase cache.
+# The files are removed directly rather than with `pkg clean -ay`: that
+# refuses with "No package database installed" until a ports catalogue
+# exists, which on riscv64 only happens later (VM_INSTALL_SCRIPT points pkg
+# at anyvm-org/freebsd-pkg-repo), and it left 469 MiB behind on 15.1-ufs-
+# riscv64. The cache is only a download cache; pkg refetches on demand.
 if [ -e /etc/rc.d/anyvm_ufstrim ]; then
-  pkg clean -ay || true
+  find /var/cache/pkg -name '*.pkg' -exec rm -f {} + || true
+  du -sh /var/cache/pkg || true
 fi
 
 echo "Done. Reboot to apply all optimizations."
