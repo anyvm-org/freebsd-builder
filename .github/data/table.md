@@ -2,10 +2,10 @@
 
 | Release | x86_64 | aarch64(arm64) | riscv64 | powerpc64 |
 |---------|---------|---------|---------|---------|
-| 15.1-ufs | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) |
 | 15.1 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) |
-| 15.0-ufs | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) |
+| 15.1-ufs | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) |
 | 15.0 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) |
+| 15.0-ufs | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) |
 | 14.5 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) | ✅ (nfs,scp,tar) |
 | 14.4 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) | ✅ (nfs,scp,tar) |
 | 14.3 | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (rsync,scp,sshfs,nfs,tar) | ✅ (nfs,scp,tar) | ✅ (nfs,scp,tar) |
