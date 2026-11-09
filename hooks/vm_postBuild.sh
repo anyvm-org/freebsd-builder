@@ -237,6 +237,14 @@ esac
 # the "Oh no! Something has gone wrong" screen at GDM.
 pkg upgrade -y
 
+# UFS TRIM pending (see anyvm_ufstrim above): drop the fetched packages now,
+# so the post-build reboot trims their blocks too. vm_finalize.sh's
+# `pkg clean` runs after that reboot, and on UFS whatever it frees stays
+# allocated in the qcow2 -- measured 3.33 GiB allocated against 2.6 GiB
+# used on 15.1-ufs-aarch64, the gap being the ~0.55 GiB pkgbase cache.
+if [ -e /etc/rc.d/anyvm_ufstrim ]; then
+  pkg clean -ay || true
+fi
 
 echo "Done. Reboot to apply all optimizations."
 
